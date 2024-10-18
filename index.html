@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Contas</title>
+    <title>Controle de Contas - Escolha de Ano e Mês</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <style>
         body {
@@ -14,121 +14,109 @@
             color: #333;
         }
         #app {
-            max-width: 500px;
+            max-width: 600px;
             margin: auto;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
-        h1, h2, h3 {
+        h1, h2 {
             color: #007BFF;
             margin-bottom: 10px;
         }
-        input {
-            margin: 5px 0;
+        .ano, .mes {
             padding: 10px;
-            width: calc(100% - 22px);
+            background-color: #f1f1f1;
             border: 1px solid #ccc;
             border-radius: 5px;
-            transition: border-color 0.3s;
-            text-align: right; /* Alinhando o texto à direita */
+            margin: 5px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        input:focus {
-            border-color: #007BFF;
-            outline: none;
+        .ano:hover, .mes:hover {
+            background-color: #e0e0e0;
+        }
+        .resumo {
+            margin: 20px 0;
+        }
+        .resumo p {
+            margin: 5px 0;
+            font-weight: bold;
         }
         button {
-            padding: 10px 15px;
-            margin-top: 10px;
             background-color: #007BFF;
             color: white;
             border: none;
+            padding: 10px;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
         }
-        .resumo {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f1f1f1;
-        }
-        .resumo div {
-            flex: 1;
-            text-align: center;
-        }
-        .resumo div p {
-            margin: 5px 0;
-            font-weight: bold;
-            color: #333;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-        li {
-            background-color: #f1f1f1;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* Alinhamento vertical */
-        }
-        .remove-btn {
-            background-color: #dc3545; /* Cor de fundo do botão remover */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            padding: 5px 10px;
-            transition: background-color 0.3s;
-        }
-        .remove-btn:hover {
-            background-color: #c82333; /* Cor de fundo ao passar o mouse */
+        .voltar-btn {
+            background-color: #6c757d;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <h1>Controle de Contas</h1>
-        
-        <h2>Adicionar Conta</h2>
-        <input v-model="descricao" placeholder="Descrição da conta" />
-        <input v-model="valor" type="text" placeholder="Valor da conta" @input="atualizarValor" />
-        <button @click="adicionarConta">Adicionar</button>
-
-        <h3>Lista de Contas</h3>
-        <ul>
-            <li v-for="(conta, index) in contas" :key="conta.descricao">
-                <span>{{ conta.descricao }}</span>
-                <span>{{ formatarValor(conta.valor) }}</span>
-                <button class="remove-btn" @click="removerConta(index)">Remover</button>
-            </li>
-        </ul>
-
-        <h2>Resumo</h2>
-        <div>
-            <label for="salario">Salário:</label>
-            <input id="salario" type="text" v-model="salarioFormatado" @input="atualizarSalario" placeholder="Digite seu salário" />
+        <!-- Escolha de Ano -->
+        <div v-if="!escolheuAno">
+            <h1>Escolha o Ano</h1>
+            <div v-for="ano in anos" :key="ano" class="ano" @click="selecionarAno(ano)">
+                <span>{{ ano }}</span>
+            </div>
         </div>
-        <div class="resumo">
-            <div>
-                <p>Total de contas:</p>
-                <p>{{ formatarValor(totalContas) }}</p>
+
+        <!-- Escolha de Mês -->
+        <div v-else-if="!escolheuMes">
+            <h1>Escolha o Mês de {{ anoSelecionado }}</h1>
+            <div v-for="(mes, index) in meses" :key="index" class="mes" @click="selecionarMes(index)">
+                <span>{{ mes }}</span>
+                <span>Salário: R$ {{ formatarValor(salariosMes[index]) }} | Contas: R$ {{ formatarValor(totalContasMes[index]) }}</span>
             </div>
-            <div>
-                <p>Sobra:</p>
-                <p>{{ formatarValor(salario - totalContas) }}</p>
+            <button class="voltar-btn" @click="voltarParaAno">Voltar</button>
+        </div>
+
+        <!-- Página do Mês -->
+        <div v-else>
+            <h2>{{ meses[mesSelecionado] }} de {{ anoSelecionado }}</h2>
+
+            <div class="resumo">
+                <p>Salário Salvo: R$ {{ formatarValor(salariosMes[mesSelecionado]) }}</p>
+                <p>Total de Contas: R$ {{ formatarValor(totalContasMes[mesSelecionado]) }}</p>
             </div>
+
+            <h2>Adicionar Salário</h2>
+            <input v-model="salariosMes[mesSelecionado]" type="text" placeholder="Digite o salário do mês" @input="atualizarValorSalario" />
+            <button @click="salvarSalario">Salvar Salário</button>
+
+            <h2>Adicionar Conta</h2>
+            <input v-model="descricao" placeholder="Descrição da conta" />
+            <input v-model="valor" type="text" placeholder="Valor da conta" @input="atualizarValor" />
+            <button @click="adicionarConta">Adicionar</button>
+
+            <h3>Lista de Contas</h3>
+            <ul>
+                <li v-for="(conta, index) in contas" :key="index">
+                    {{ conta.descricao }} - R$ {{ formatarValor(conta.valor) }}
+                    <button @click="removerConta(index)">Remover</button>
+                </li>
+            </ul>
+
+            <h2>Resumo do Mês</h2>
+            <div class="resumo">
+                <p>Total de contas: R$ {{ formatarValor(totalContas) }}</p>
+                <p>Sobra: R$ {{ formatarValor(salariosMes[mesSelecionado] - totalContas) }}</p>
+            </div>
+
+            <button class="voltar-btn" @click="voltarParaMes">Voltar</button>
         </div>
     </div>
 
@@ -136,73 +124,88 @@
         new Vue({
             el: '#app',
             data: {
-                salario: 0,
-                contas: [],
+                escolheuAno: false,
+                escolheuMes: false,
+                anoSelecionado: null,
+                mesSelecionado: null,
+                anos: Array.from({ length: 12 }, (_, i) => 2024 + i), // De 2024 a 2035
+                meses: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+                salariosMes: Array(12).fill(0),  // Salário por mês
+                totalContasMes: Array(12).fill(0), // Total de contas por mês
                 descricao: '',
                 valor: '',
+                contas: []
             },
             computed: {
                 totalContas() {
                     return this.contas.reduce((total, conta) => total + conta.valor, 0);
-                },
-                salarioFormatado: {
-                    get() {
-                        return this.formatarValor(this.salario);
-                    },
-                    set(value) {
-                        this.salario = this.removerMascara(value);
-                    }
                 }
             },
             methods: {
+                selecionarAno(ano) {
+                    this.anoSelecionado = ano;
+                    this.escolheuAno = true;
+                    this.carregarDadosAno();
+                },
+                selecionarMes(mesIndex) {
+                    this.mesSelecionado = mesIndex;
+                    this.escolheuMes = true;
+                    this.carregarDadosMes();
+                },
+                voltarParaAno() {
+                    this.escolheuAno = false;
+                    this.escolheuMes = false;
+                },
+                voltarParaMes() {
+                    this.escolheuMes = false;
+                },
                 adicionarConta() {
-                    const valorNumerico = this.removerMascara(this.valor);
+                    const valorNumerico = parseFloat(this.valor);
                     if (this.descricao && valorNumerico > 0) {
-                        const conta = {
+                        this.contas.push({
                             descricao: this.descricao,
-                            valor: parseFloat(valorNumerico),
-                        };
-                        this.contas.push(conta);
+                            valor: valorNumerico
+                        });
                         this.descricao = '';
                         this.valor = '';
-                        this.salvarDados();
+                        this.salvarDadosMes();
                     }
                 },
                 removerConta(index) {
-                    this.contas.splice(index, 1); // Remove a conta do array
-                    this.salvarDados(); // Salva os dados atualizados
+                    this.contas.splice(index, 1);
+                    this.salvarDadosMes();
+                },
+                salvarSalario() {
+                    localStorage.setItem(`salario-${this.anoSelecionado}-${this.mesSelecionado}`, this.salariosMes[this.mesSelecionado]);
+                },
+                salvarDadosMes() {
+                    localStorage.setItem(`contas-${this.anoSelecionado}-${this.mesSelecionado}`, JSON.stringify(this.contas));
+                    this.totalContasMes[this.mesSelecionado] = this.totalContas;
+                },
+                carregarDadosAno() {
+                    for (let i = 0; i < 12; i++) {
+                        const salarioSalvo = localStorage.getItem(`salario-${this.anoSelecionado}-${i}`);
+                        const contasSalvas = localStorage.getItem(`contas-${this.anoSelecionado}-${i}`);
+                        
+                        this.salariosMes[i] = salarioSalvo ? parseFloat(salarioSalvo) : 0;
+                        this.totalContasMes[i] = contasSalvas ? JSON.parse(contasSalvas).reduce((total, conta) => total + conta.valor, 0) : 0;
+                    }
+                },
+                carregarDadosMes() {
+                    const dadosContas = localStorage.getItem(`contas-${this.anoSelecionado}-${this.mesSelecionado}`);
+                    this.contas = dadosContas ? JSON.parse(dadosContas) : [];
                 },
                 formatarValor(valor) {
-                    if (valor === null || valor === undefined || valor === 0) return 'R$ 0,00';
-                    return 'R$ ' + parseFloat(valor).toFixed(2).replace('.', ',');
-                },
-                removerMascara(valor) {
-                    return valor.replace(/[R$.\s]/g, '').replace(',', '.');
+                    if (!valor) return '0,00';
+                    return parseFloat(valor).toFixed(2).replace('.', ',');
                 },
                 atualizarValor(event) {
-                    this.valor = this.formatarValor(this.removerMascara(event.target.value));
+                    this.valor = event.target.value.replace(/\D/g, '');
                 },
-                salvarDados() {
-                    localStorage.setItem('salario', this.salario);
-                    localStorage.setItem('contas', JSON.stringify(this.contas));
-                },
-                carregarDados() {
-                    const salarioSalvo = localStorage.getItem('salario');
-                    const contasSalvas = localStorage.getItem('contas');
-                    if (salarioSalvo) {
-                        this.salario = parseFloat(salarioSalvo);
-                    }
-                    if (contasSalvas) {
-                        this.contas = JSON.parse(contasSalvas);
-                    }
-                },
-                atualizarSalario(event) {
-                    this.salario = this.removerMascara(event.target.value);
+                atualizarValorSalario(event) {
+                    this.salariosMes[this.mesSelecionado] = event.target.value.replace(/\D/g, '');
                 }
-            },
-            created() {
-                this.carregarDados();
-            },
+            }
         });
     </script>
 </body>
