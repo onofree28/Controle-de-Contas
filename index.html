@@ -3,120 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Contas - Escolha de Ano e Mês</title>
+    <title>Controle de Contas - Planilha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: #f4f6f8;
             margin: 0;
             padding: 20px;
             color: #333;
         }
         #app {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
-        h1, h2 {
+        h1 {
             color: #007BFF;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
-        .ano, .mes {
-            padding: 10px;
-            background-color: #f1f1f1;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin: 5px 0;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .ano:hover, .mes:hover {
-            background-color: #e0e0e0;
-        }
-        .resumo {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin: 20px 0;
         }
-        .resumo p {
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
             margin: 5px 0;
-            font-weight: bold;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #007BFF;
+            outline: none;
         }
         button {
             background-color: #007BFF;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            font-size: 1rem;
             margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
         }
-        .voltar-btn {
-            background-color: #6c757d;
+        .resumo {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+        .horizontal-layout {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .horizontal-layout > div {
+            flex: 1;
             margin-right: 10px;
+        }
+        .horizontal-layout > div:last-child {
+            margin-right: 0;
+        }
+        .campo-conta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .campo-conta > div {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .campo-conta > div:last-child {
+            margin-right: 0;
+        }
+        @media (max-width: 600px) {
+            #app {
+                padding: 10px;
+            }
+            button {
+                font-size: 0.9rem;
+            }
+            .horizontal-layout {
+                flex-direction: column;
+            }
+            .campo-conta {
+                flex-direction: column;
+            }
+            .campo-conta > div {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- Escolha de Ano -->
-        <div v-if="!escolheuAno">
-            <h1>Escolha o Ano</h1>
-            <div v-for="ano in anos" :key="ano" class="ano" @click="selecionarAno(ano)">
-                <span>{{ ano }}</span>
+        <h1>Controle de Contas</h1>
+
+        <div class="horizontal-layout">
+            <div>
+                <h2>Escolha o Ano</h2>
+                <select v-model="anoSelecionado" @change="carregarDadosAno">
+                    <option v-for="ano in anos" :key="ano" :value="ano">{{ ano }}</option>
+                </select>
+            </div>
+            <div>
+                <h2>Escolha o Mês</h2>
+                <select v-model="mesSelecionado" @change="carregarDadosMes">
+                    <option v-for="(mes, index) in meses" :key="index" :value="index">{{ mes }}</option>
+                </select>
             </div>
         </div>
 
-        <!-- Escolha de Mês -->
-        <div v-else-if="!escolheuMes">
-            <h1>Escolha o Mês de {{ anoSelecionado }}</h1>
-            <div v-for="(mes, index) in meses" :key="index" class="mes" @click="selecionarMes(index)">
-                <span>{{ mes }}</span>
-                <span>Salário: R$ {{ formatarValor(salariosMes[index]) }} | Contas: R$ {{ formatarValor(totalContasMes[index]) }}</span>
-            </div>
-            <button class="voltar-btn" @click="voltarParaAno">Voltar</button>
+        <div class="resumo">
+            <p>Salário Salvo: R$ {{ formatarValor(salariosMes[mesSelecionado]) }}</p>
+            <p>Total de Contas: R$ {{ formatarValor(totalContasMes[mesSelecionado]) }}</p>
         </div>
 
-        <!-- Página do Mês -->
-        <div v-else>
-            <h2>{{ meses[mesSelecionado] }} de {{ anoSelecionado }}</h2>
-
-            <div class="resumo">
-                <p>Salário Salvo: R$ {{ formatarValor(salariosMes[mesSelecionado]) }}</p>
-                <p>Total de Contas: R$ {{ formatarValor(totalContasMes[mesSelecionado]) }}</p>
+        <h2>Adicionar Salário</h2>
+        <div class="horizontal-layout">
+            <div>
+                <input v-model="salariosMes[mesSelecionado]" type="text" placeholder="Digite o salário do mês" @input="atualizarValorSalario" />
             </div>
+        </div>
 
-            <h2>Adicionar Salário</h2>
-            <input v-model="salariosMes[mesSelecionado]" type="text" placeholder="Digite o salário do mês" @input="atualizarValorSalario" />
-            <button @click="salvarSalario">Salvar Salário</button>
-
-            <h2>Adicionar Conta</h2>
-            <input v-model="descricao" placeholder="Descrição da conta" />
-            <input v-model="valor" type="text" placeholder="Valor da conta" @input="atualizarValor" />
-            <button @click="adicionarConta">Adicionar</button>
-
-            <h3>Lista de Contas</h3>
-            <ul>
-                <li v-for="(conta, index) in contas" :key="index">
-                    {{ conta.descricao }} - R$ {{ formatarValor(conta.valor) }}
-                    <button @click="removerConta(index)">Remover</button>
-                </li>
-            </ul>
-
-            <h2>Resumo do Mês</h2>
-            <div class="resumo">
-                <p>Total de contas: R$ {{ formatarValor(totalContas) }}</p>
-                <p>Sobra: R$ {{ formatarValor(salariosMes[mesSelecionado] - totalContas) }}</p>
+        <h2>Adicionar Conta</h2>
+        <div class="campo-conta">
+            <div>
+                <input v-model="descricao" placeholder="Descrição da conta" />
             </div>
+            <div>
+                <input v-model="valor" type="text" placeholder="Valor da conta" @input="atualizarValor" />
+            </div>
+            <div>
+                <button @click="adicionarConta">Adicionar</button>
+            </div>
+        </div>
 
-            <button class="voltar-btn" @click="voltarParaMes">Voltar</button>
+        <h3>Lista de Contas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(conta, index) in contas" :key="index">
+                    <td>{{ conta.descricao }}</td>
+                    <td>R$ {{ formatarValor(conta.valor) }}</td>
+                    <td><button @click="removerConta(index)">Remover</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Resumo do Mês</h2>
+        <div class="resumo">
+            <p>Total de contas: R$ {{ formatarValor(totalContas) }}</p>
+            <p>Sobra: R$ {{ formatarValor(salariosMes[mesSelecionado] - totalContas) }}</p>
         </div>
     </div>
 
@@ -124,14 +193,12 @@
         new Vue({
             el: '#app',
             data: {
-                escolheuAno: false,
-                escolheuMes: false,
-                anoSelecionado: null,
-                mesSelecionado: null,
-                anos: Array.from({ length: 12 }, (_, i) => 2024 + i), // De 2024 a 2035
+                anoSelecionado: new Date().getFullYear(),
+                mesSelecionado: new Date().getMonth(),
+                anos: Array.from({ length: 12 }, (_, i) => 2024 + i),
                 meses: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-                salariosMes: Array(12).fill(0),  // Salário por mês
-                totalContasMes: Array(12).fill(0), // Total de contas por mês
+                salariosMes: Array(12).fill(0),
+                totalContasMes: Array(12).fill(0),
                 descricao: '',
                 valor: '',
                 contas: []
@@ -142,30 +209,10 @@
                 }
             },
             methods: {
-                selecionarAno(ano) {
-                    this.anoSelecionado = ano;
-                    this.escolheuAno = true;
-                    this.carregarDadosAno();
-                },
-                selecionarMes(mesIndex) {
-                    this.mesSelecionado = mesIndex;
-                    this.escolheuMes = true;
-                    this.carregarDadosMes();
-                },
-                voltarParaAno() {
-                    this.escolheuAno = false;
-                    this.escolheuMes = false;
-                },
-                voltarParaMes() {
-                    this.escolheuMes = false;
-                },
                 adicionarConta() {
-                    const valorNumerico = parseFloat(this.valor);
+                    const valorNumerico = parseFloat(this.valor.replace(',', '.'));
                     if (this.descricao && valorNumerico > 0) {
-                        this.contas.push({
-                            descricao: this.descricao,
-                            valor: valorNumerico
-                        });
+                        this.contas.push({ descricao: this.descricao, valor: valorNumerico });
                         this.descricao = '';
                         this.valor = '';
                         this.salvarDadosMes();
@@ -175,21 +222,16 @@
                     this.contas.splice(index, 1);
                     this.salvarDadosMes();
                 },
-                salvarSalario() {
-                    localStorage.setItem(`salario-${this.anoSelecionado}-${this.mesSelecionado}`, this.salariosMes[this.mesSelecionado]);
-                },
                 salvarDadosMes() {
                     localStorage.setItem(`contas-${this.anoSelecionado}-${this.mesSelecionado}`, JSON.stringify(this.contas));
                     this.totalContasMes[this.mesSelecionado] = this.totalContas;
                 },
                 carregarDadosAno() {
                     for (let i = 0; i < 12; i++) {
-                        const salarioSalvo = localStorage.getItem(`salario-${this.anoSelecionado}-${i}`);
                         const contasSalvas = localStorage.getItem(`contas-${this.anoSelecionado}-${i}`);
-                        
-                        this.salariosMes[i] = salarioSalvo ? parseFloat(salarioSalvo) : 0;
                         this.totalContasMes[i] = contasSalvas ? JSON.parse(contasSalvas).reduce((total, conta) => total + conta.valor, 0) : 0;
                     }
+                    this.carregarDadosMes();
                 },
                 carregarDadosMes() {
                     const dadosContas = localStorage.getItem(`contas-${this.anoSelecionado}-${this.mesSelecionado}`);
@@ -203,10 +245,14 @@
                     this.valor = event.target.value.replace(/\D/g, '');
                 },
                 atualizarValorSalario(event) {
-                    this.salariosMes[this.mesSelecionado] = event.target.value.replace(/\D/g, '');
+                  const valorFormatado = event.target.value.replace(/\D/g, '');
+                  this.salariosMes[this.mesSelecionado] = valorFormatado;
                 }
-            }
-        });
-    </script>
-</body>
-</html>
+                },
+                mounted() {
+                this.carregarDadosAno();
+                }
+                });
+                </script> <
+                /body> <
+                /html>
