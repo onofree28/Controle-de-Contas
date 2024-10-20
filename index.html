@@ -66,12 +66,12 @@
       <select v-model="selectedYear">
         <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
       </select>
-      <select v-model="selectedMonth">
+      <select v-model="selectedMonth" @change="generateAccounts">
         <option v-for="(month, index) in months" :key="index" :value="index">{{ month }}</option>
       </select>
     </header>
 
-    <div v-if="selectedYear && selectedMonth" style="flex: 1;">
+    <div v-if="selectedYear && selectedMonth !== null" style="flex: 1;">
       <table>
         <thead>
           <tr>
@@ -90,7 +90,7 @@
       </table>
     </div>
 
-    <footer v-if="selectedYear && selectedMonth">
+    <footer v-if="selectedYear && selectedMonth !== null">
       <div>
         <label>Salário/Entradas:</label>
         <input v-model="salary" @input="applyMask($data, 'salary')" type="text" placeholder="Salário" />
@@ -119,7 +119,7 @@
           selectedMonth: currentMonth,
           years: [2024, 2025, 2026, 2027, 2028, 2029, 2030],
           months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-          accounts: Array.from({ length: 10 }, () => ({ description: '', value: 0 })),
+          accounts: [],
           salary: 0
         };
       },
@@ -132,6 +132,9 @@
         }
       },
       methods: {
+        generateAccounts() {
+          this.accounts = Array.from({ length: 10 }, () => ({ description: '', value: 0 }));
+        },
         removeAccount(index) {
           this.accounts.splice(index, 1);
         },
@@ -149,6 +152,9 @@
         formatCurrency(value) {
           return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
+      },
+      mounted() {
+        this.generateAccounts();  // Gera os campos de contas ao carregar o app com mês atual selecionado
       }
     }).mount('#app');
   </script>
